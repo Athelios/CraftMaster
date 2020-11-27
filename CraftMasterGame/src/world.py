@@ -6,6 +6,8 @@ from processQueue import ProcessQueue
 from shape import Shape3D
 from loadSource import *
 
+from enemy import Enemy
+
 if sys.version_info[0] >= 3:
     xrange = range
     if sys.version_info[0] * 10 + sys.version_info[1] >= 38:
@@ -45,6 +47,8 @@ class World(object):
         self.blocks = {}
         for block in allBlocks:
             self.blocks[block.name] = block
+
+        self.npcs = []
 
     def skyColor(self):
         """get the current skyColor
@@ -87,6 +91,8 @@ class World(object):
             if self.sector is None:
                 self.processQueue.process_entire_queue()
             self.sector = sector
+        for npc in self.npcs:
+            npc.update(freshPeriod, self)
 
     def clearWorld(self):
         """Clear the world"""
@@ -145,7 +151,8 @@ class World(object):
                         if (x - 0) ** 2 + (z - 0) ** 2 < 5 ** 2:
                             continue
                         self.add_block((x, y, z), t.name, immediate=False)
-                s -= d  # decrement side lenth so hills taper off
+                s -= d  # decrement side length so hills taper off
+        self.npcs.append(Enemy(self, [0, -1, 0], 10))
 
     def collide(self, position, creature):
         """ Checks to see if the player at the given `position` and `height`
@@ -241,6 +248,7 @@ class World(object):
         self.world[position] = block
         self.sectors.setdefault(self._sectorize(position), []).append(position)
         if immediate:
+            self.npcs[0].moveTo(position)
             if self._exposed(position):
                 self._show_block(position)
             self._check_neighbors(position)

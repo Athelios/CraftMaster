@@ -1,12 +1,17 @@
 from npc import Npc
 import math
 from pyglet.gl import *
+from navigation import *
 
 class Enemy(Npc):
     def __init__(self, world, position, health, dy=0, walkSpeed=5, flying=False, flySpeed=10, height=1, jumpHeight=1.0):
         super(Enemy, self).__init__(world, position, health, dy, walkSpeed, flying, flySpeed, height, jumpHeight)
         self.lastPosition = list(position)
         self.model = self.createModel(world)
+        self.counter = 0
+        self.navigation = Navigation(self)
+
+        self.SEEK_MAX = 100
 
     def createModel(self, world):
         x, y, z = self.position
@@ -25,7 +30,17 @@ class Enemy(Npc):
 
         return model
 
+    def moveTo(self, position):
+        self.goal = position
+        self.navigation.navigate()
+        #self.graph = Graph(self.position, position, self.SEEK_DIST)
+
+    def navigate(self):
+        self.position = self.navigation.move()
+
     def update(self, dt, world):
+        if self.goal and self.counter % 10 == 0:
+            self.navigate()
         for part in self.model:
             for i in range(0, len(part.vertices), 3):
                 part.vertices[i] += self.position[0] - self.lastPosition[0]
@@ -34,3 +49,4 @@ class Enemy(Npc):
             for i in range(2, len(part.vertices), 3):
                 part.vertices[i] += self.position[2] - self.lastPosition[2]
         self.lastPosition = list(self.position)
+        self.counter += 1

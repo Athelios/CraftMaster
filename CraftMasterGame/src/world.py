@@ -154,6 +154,39 @@ class World(object):
                 s -= d  # decrement side length so hills taper off
         self.npcs.append(Enemy(self, [0, -1, 0], 10))
 
+    def walkable(self, position):
+        walkable = []
+
+        if (position[0] + 1, position[1], position[2]) not in self.world and (position[0] + 1, position[1] + 1, position[2]) not in self.world and (position[0] + 1, position[1] - 1, position[2]) in self.world:
+            walkable.append((position[0] + 1, position[1], position[2]))
+        elif (position[0] + 1, position[1], position[2]) in self.world and (position[0] + 1, position[1] + 1, position[2]) not in self.world and (position[0] + 1, position[1] + 2, position[2]) not in self.world and (position[0], position[1] + 2, position[2]) not in self.world:
+            walkable.append((position[0] + 1, position[1] + 1, position[2]))
+        elif (position[0] + 1, position[1] - 1, position[2]) not in self.world and (position[0] + 1, position[1] - 2, position[2]) in self.world and (position[0] + 1, position[1], position[2]) not in self.world and (position[0] + 1, position[1] + 1, position[2]) not in self.world:
+            walkable.append((position[0] + 1, position[1] - 1, position[2]))
+
+        if (position[0] - 1, position[1], position[2]) not in self.world and (position[0] - 1, position[1] + 1, position[2]) not in self.world and (position[0] - 1, position[1] - 1, position[2]) in self.world:
+            walkable.append((position[0] - 1, position[1], position[2]))
+        elif (position[0] - 1, position[1], position[2]) in self.world and (position[0] - 1, position[1] + 1, position[2]) not in self.world and (position[0] - 1, position[1] + 2, position[2]) not in self.world and (position[0], position[1] + 2, position[2]) not in self.world:
+            walkable.append((position[0] - 1, position[1] + 1, position[2]))
+        elif (position[0] - 1, position[1] - 1, position[2]) not in self.world and (position[0] - 1, position[1] - 2, position[2]) in self.world and (position[0] - 1, position[1], position[2]) not in self.world and (position[0] - 1, position[1] + 1, position[2]) not in self.world:
+            walkable.append((position[0] - 1, position[1] - 1, position[2]))
+
+        if (position[0], position[1], position[2] + 1) not in self.world and (position[0], position[1] + 1, position[2] + 1) not in self.world and (position[0], position[1] - 1, position[2] + 1) in self.world:
+            walkable.append((position[0], position[1], position[2] + 1))
+        elif (position[0], position[1], position[2] + 1) in self.world and (position[0], position[1] + 1, position[2] + 1) not in self.world and (position[0], position[1] + 2, position[2] + 1) not in self.world and (position[0], position[1] + 2, position[2]) not in self.world:
+            walkable.append((position[0], position[1] + 1, position[2] + 1))
+        elif (position[0], position[1] - 1, position[2] + 1) not in self.world and (position[0], position[1] - 2, position[2] + 1) in self.world and (position[0], position[1], position[2] + 1) not in self.world and (position[0], position[1] + 1, position[2] + 1) not in self.world:
+            walkable.append((position[0], position[1] - 1, position[2] + 1))
+
+        if (position[0], position[1], position[2] - 1) not in self.world and (position[0], position[1] + 1, position[2] - 1) not in self.world and (position[0], position[1] - 1, position[2] - 1) in self.world:
+            walkable.append((position[0], position[1], position[2] - 1))
+        elif (position[0], position[1], position[2] - 1) in self.world and (position[0], position[1] + 1, position[2] - 1) not in self.world and (position[0], position[1] + 2, position[2] - 1) not in self.world and (position[0], position[1] + 2, position[2]) not in self.world:
+            walkable.append((position[0], position[1] + 1, position[2] - 1))
+        elif (position[0], position[1] - 1, position[2] - 1) not in self.world and (position[0], position[1] - 2, position[2] - 1) in self.world and (position[0], position[1], position[2] - 1) not in self.world and (position[0], position[1] + 1, position[2] - 1) not in self.world:
+            walkable.append((position[0], position[1] - 1, position[2] - 1))
+
+        return walkable
+
     def collide(self, position, creature):
         """ Checks to see if the player at the given `position` and `height`
         is colliding with any blocks in the world.
@@ -241,6 +274,10 @@ class World(object):
             Whether or not to draw the block immediately.
 
         """
+        if immediate:
+            self.npcs[0].moveTo((position[0], position[1], position[2]))
+            return
+
         if block not in self.blocks:
             raise ValueError("The block cannot be recognized in this world.")
         if position in self.world:
@@ -248,7 +285,6 @@ class World(object):
         self.world[position] = block
         self.sectors.setdefault(self._sectorize(position), []).append(position)
         if immediate:
-            self.npcs[0].moveTo(position)
             if self._exposed(position):
                 self._show_block(position)
             self._check_neighbors(position)

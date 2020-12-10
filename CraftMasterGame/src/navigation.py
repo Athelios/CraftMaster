@@ -78,22 +78,40 @@ class Navigation:
         self.world = npc.world
         self.graph = None
         self.path = None
+        self.shift = 0.0
 
     def navigate(self):
         start = normalize(self.npc.position)
         end = normalize(self.npc.goal)
         self.graph = Graph(start, end)
+        self.shift = 0.0
         while not self.graph.path and self.graph.steps < self.npc.SEEK_MAX and self.graph.discoverable:
             nearest = self.graph.nearest()
             walkable = self.world.walkable(nearest.position)
             self.graph.step(nearest, walkable)
         self.path = self.graph.path
 
+    def interpolate(self, pos1, pos2, alpha):
+        x1, y1, z1 = pos1
+        x2, y2, z2 = pos2
+        x = x1 + (x2 - x1) * alpha
+        y = y1 + (y2 - y1) * alpha
+        z = z1 + (z2 - z1) * alpha
+        return x, y, z
+
     def move(self):
         if self.path:
-            pos = self.path.pop(0)
+            """pos = self.path.pop(0)
             if not self.path:
                 self.npc.goal = None
-            return pos.position
+            return pos.position"""
+            pos1 = self.path[math.floor(self.shift)].position
+            pos2 = self.path[math.ceil(self.shift)].position
+            pos = self.interpolate(pos1, pos2, self.shift % 1)
+            if self.shift + 0.1 >= len(self.path) - 1:
+                self.npc.goal = None
+            else:
+                self.shift += 0.1
+            return pos
         else:
             return self.npc.position

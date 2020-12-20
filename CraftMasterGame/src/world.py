@@ -15,10 +15,12 @@ if sys.version_info[0] >= 3:
 
 
 class World(object):
-    def __init__(self, allBlocks, sectorSize = 16, gravity = 20):
+    def __init__(self, allBlocks, player, sectorSize = 16, gravity = 20):
 
         # A Batch is a collection of vertex lists for batched rendering.
         self.batch = pyglet.graphics.Batch()
+
+        self.player = player
 
         # A mapping from position to the texture of the block at that position.
         # This defines all the blocks that are currently in the world.
@@ -155,37 +157,64 @@ class World(object):
         self.npcs.append(Enemy(self, [0, -1, 0], 10))
 
     def walkable(self, position):
-        walkable = []
-
+        n1, n2, n3, n4, n5, n6, n7, n8 = 8*[[]]
         if (position[0] + 1, position[1], position[2]) not in self.world and (position[0] + 1, position[1] + 1, position[2]) not in self.world and (position[0] + 1, position[1] - 1, position[2]) in self.world:
-            walkable.append((position[0] + 1, position[1], position[2]))
+            n1.append((position[0] + 1, position[1], position[2]))
         elif (position[0] + 1, position[1], position[2]) in self.world and (position[0] + 1, position[1] + 1, position[2]) not in self.world and (position[0] + 1, position[1] + 2, position[2]) not in self.world and (position[0], position[1] + 2, position[2]) not in self.world:
-            walkable.append((position[0] + 1, position[1] + 1, position[2]))
+            n1.append((position[0] + 1, position[1] + 1, position[2]))
         elif (position[0] + 1, position[1] - 1, position[2]) not in self.world and (position[0] + 1, position[1] - 2, position[2]) in self.world and (position[0] + 1, position[1], position[2]) not in self.world and (position[0] + 1, position[1] + 1, position[2]) not in self.world:
-            walkable.append((position[0] + 1, position[1] - 1, position[2]))
+            n1.append((position[0] + 1, position[1] - 1, position[2]))
 
         if (position[0] - 1, position[1], position[2]) not in self.world and (position[0] - 1, position[1] + 1, position[2]) not in self.world and (position[0] - 1, position[1] - 1, position[2]) in self.world:
-            walkable.append((position[0] - 1, position[1], position[2]))
+            n5.append((position[0] - 1, position[1], position[2]))
         elif (position[0] - 1, position[1], position[2]) in self.world and (position[0] - 1, position[1] + 1, position[2]) not in self.world and (position[0] - 1, position[1] + 2, position[2]) not in self.world and (position[0], position[1] + 2, position[2]) not in self.world:
-            walkable.append((position[0] - 1, position[1] + 1, position[2]))
+            n5.append((position[0] - 1, position[1] + 1, position[2]))
         elif (position[0] - 1, position[1] - 1, position[2]) not in self.world and (position[0] - 1, position[1] - 2, position[2]) in self.world and (position[0] - 1, position[1], position[2]) not in self.world and (position[0] - 1, position[1] + 1, position[2]) not in self.world:
-            walkable.append((position[0] - 1, position[1] - 1, position[2]))
+            n5.append((position[0] - 1, position[1] - 1, position[2]))
 
         if (position[0], position[1], position[2] + 1) not in self.world and (position[0], position[1] + 1, position[2] + 1) not in self.world and (position[0], position[1] - 1, position[2] + 1) in self.world:
-            walkable.append((position[0], position[1], position[2] + 1))
+            n3.append((position[0], position[1], position[2] + 1))
         elif (position[0], position[1], position[2] + 1) in self.world and (position[0], position[1] + 1, position[2] + 1) not in self.world and (position[0], position[1] + 2, position[2] + 1) not in self.world and (position[0], position[1] + 2, position[2]) not in self.world:
-            walkable.append((position[0], position[1] + 1, position[2] + 1))
+            n3.append((position[0], position[1] + 1, position[2] + 1))
         elif (position[0], position[1] - 1, position[2] + 1) not in self.world and (position[0], position[1] - 2, position[2] + 1) in self.world and (position[0], position[1], position[2] + 1) not in self.world and (position[0], position[1] + 1, position[2] + 1) not in self.world:
-            walkable.append((position[0], position[1] - 1, position[2] + 1))
+            n3.append((position[0], position[1] - 1, position[2] + 1))
 
         if (position[0], position[1], position[2] - 1) not in self.world and (position[0], position[1] + 1, position[2] - 1) not in self.world and (position[0], position[1] - 1, position[2] - 1) in self.world:
-            walkable.append((position[0], position[1], position[2] - 1))
+            n7.append((position[0], position[1], position[2] - 1))
         elif (position[0], position[1], position[2] - 1) in self.world and (position[0], position[1] + 1, position[2] - 1) not in self.world and (position[0], position[1] + 2, position[2] - 1) not in self.world and (position[0], position[1] + 2, position[2]) not in self.world:
-            walkable.append((position[0], position[1] + 1, position[2] - 1))
+            n7.append((position[0], position[1] + 1, position[2] - 1))
         elif (position[0], position[1] - 1, position[2] - 1) not in self.world and (position[0], position[1] - 2, position[2] - 1) in self.world and (position[0], position[1], position[2] - 1) not in self.world and (position[0], position[1] + 1, position[2] - 1) not in self.world:
-            walkable.append((position[0], position[1] - 1, position[2] - 1))
+            n7.append((position[0], position[1] - 1, position[2] - 1))
 
-        return walkable
+        if n1 and n3 and (position[0] + 1, position[1], position[2] + 1) not in self.world and (position[0] + 1, position[1] + 1, position[2] + 1) not in self.world and (position[0] + 1, position[1] - 1, position[2] + 1) in self.world:
+            n2.append((position[0] + 1, position[1], position[2] + 1))
+        elif n1 and n3 and (position[0] + 1, position[1], position[2] + 1) in self.world and (position[0] + 1, position[1] + 1, position[2] + 1) not in self.world and (position[0] + 1, position[1] + 2, position[2] + 1) not in self.world and (position[0], position[1] + 2, position[2] + 1) not in self.world:
+            n2.append((position[0] + 1, position[1] + 1, position[2] + 1))
+        elif n1 and n3 and (position[0] + 1, position[1] - 1, position[2] + 1) not in self.world and (position[0] + 1, position[1] - 2, position[2] + 1) in self.world and (position[0] + 1, position[1], position[2] + 1) not in self.world and (position[0] + 1, position[1] + 1, position[2] + 1) not in self.world:
+            n2.append((position[0] + 1, position[1] - 1, position[2] + 1))
+
+        if n3 and n5 and (position[0] - 1, position[1], position[2] + 1) not in self.world and (position[0] - 1, position[1] + 1, position[2] + 1) not in self.world and (position[0] - 1, position[1] - 1, position[2] + 1) in self.world:
+            n4.append((position[0] - 1, position[1], position[2] + 1))
+        elif n3 and n5 and (position[0] - 1, position[1], position[2] + 1) in self.world and (position[0] - 1, position[1] + 1, position[2] + 1) not in self.world and (position[0] - 1, position[1] + 2, position[2] + 1) not in self.world and (position[0], position[1] + 2, position[2] + 1) not in self.world:
+            n4.append((position[0] - 1, position[1] + 1, position[2] + 1))
+        elif n3 and n5 and (position[0] - 1, position[1] - 1, position[2] + 1) not in self.world and (position[0] - 1, position[1] - 2, position[2] + 1) in self.world and (position[0] - 1, position[1], position[2] + 1) not in self.world and (position[0] - 1, position[1] + 1, position[2] + 1) not in self.world:
+            n4.append((position[0] - 1, position[1] - 1, position[2] + 1))
+
+        if n5 and n7 and (position[0] - 1, position[1], position[2] - 1) not in self.world and (position[0] - 1, position[1] + 1, position[2] - 1) not in self.world and (position[0] - 1, position[1] - 1, position[2] - 1) in self.world:
+            n6.append((position[0] - 1, position[1], position[2] - 1))
+        elif n5 and n7 and (position[0] - 1, position[1], position[2] - 1) in self.world and (position[0] - 1, position[1] + 1, position[2] - 1) not in self.world and (position[0] - 1, position[1] + 2, position[2] - 1) not in self.world and (position[0], position[1] + 2, position[2] - 1) not in self.world:
+            n6.append((position[0] - 1, position[1] + 1, position[2] - 1))
+        elif n5 and n7 and (position[0] - 1, position[1] - 1, position[2] - 1) not in self.world and (position[0] - 1, position[1] - 2, position[2] - 1) in self.world and (position[0] - 1, position[1], position[2] - 1) not in self.world and (position[0] - 1, position[1] + 1, position[2] - 1) not in self.world:
+            n6.append((position[0] - 1, position[1] - 1, position[2] - 1))
+
+        if n7 and n1 and (position[0] + 1, position[1], position[2] - 1) not in self.world and (position[0] + 1, position[1] + 1, position[2] - 1) not in self.world and (position[0] + 1, position[1] - 1, position[2] - 1) in self.world:
+            n8.append((position[0] + 1, position[1], position[2] - 1))
+        elif n7 and n1 and (position[0] + 1, position[1], position[2] - 1) in self.world and (position[0] + 1, position[1] + 1, position[2] - 1) not in self.world and (position[0] + 1, position[1] + 2, position[2] - 1) not in self.world and (position[0] + 1, position[1] + 2, position[2]) not in self.world:
+            n8.append((position[0] + 1, position[1] + 1, position[2] - 1))
+        elif n7 and n1 and (position[0] + 1, position[1] - 1, position[2] - 1) not in self.world and (position[0] + 1, position[1] - 2, position[2] - 1) in self.world and (position[0] + 1, position[1], position[2] - 1) not in self.world and (position[0] + 1, position[1] + 1, position[2] - 1) not in self.world:
+            n8.append((position[0] + 1, position[1] - 1, position[2] - 1))
+
+        return n1 + n2 + n3 + n4 + n5 + n6 + n7 + n8
 
     def collide(self, position, creature):
         """ Checks to see if the player at the given `position` and `height`
@@ -275,7 +304,8 @@ class World(object):
 
         """
         if immediate:
-            self.npcs[0].moveTo((position[0], position[1], position[2]))
+            #self.npcs[0].moveTo((position[0], position[1], position[2]))
+            #self.player.hit([0, 1, 10])
             return
 
         if block not in self.blocks:

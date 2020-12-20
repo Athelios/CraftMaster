@@ -12,6 +12,7 @@ class Creature(object):
         # The vertical plane rotation ranges from -90 (looking straight down) to
         # 90 (looking straight up). The horizontal rotation range is unbounded.
         self.rotation = (0, 0)
+        self.sight = (1, 0)
         # Strafing is moving lateral to the direction you are facing,
         # e.g. moving to the left or right while continuing to face forward.
         #
@@ -35,6 +36,7 @@ class Creature(object):
         self.height = height
         #the health of the creatures
         self.health = health
+        self.hitdir = [0, 0, 0]
 
     def rotate(self,x,y):
     ##  @brie frotate the player
@@ -66,6 +68,9 @@ class Creature(object):
             self.strafe[1] -= 1
         else:
             raise ValueError("The direction has to be forward, backward, left or right.")
+
+    def hit(self,direction):
+        self.hitdir = direction
 
     def jump(self,gravity):
     # To derive the formula for calculating jump speed, first solve
@@ -103,9 +108,10 @@ class Creature(object):
     def get_motion_vector(self):
     ##  @brief returns the current motion vector indicating the velocity of the creature.
     #   @return vector : tuple of len 3 Tuple containing the velocity in x, y, and z respectively.
+        dx, dy, dz = 0.0, 0.0, 0.0
         if any(self.strafe):
             x, y = self.rotation
-            strafe = math.degrees(math.atan2(*self.strafe))
+            strafe = math.degrees(math.atan2(self.strafe[0], self.strafe[1]))
             y_angle = math.radians(y)
             x_angle = math.radians(x + strafe)
             if self.flying:
@@ -126,8 +132,16 @@ class Creature(object):
                 dy = 0.0
                 dx = math.cos(x_angle)
                 dz = math.sin(x_angle)
-        else:
-            dy = 0.0
-            dx = 0.0
-            dz = 0.0
+        if any(self.hitdir):
+            dy += self.hitdir[2]
+            dx += self.hitdir[0]
+            dz += self.hitdir[1]
+
+            self.hitdir = [self.hitdir[0] / 2, self.hitdir[1] / 2, self.hitdir[2] / 2]
+            if self.hitdir[0] < 0.000001:
+                self.hitdir[0] = 0
+            if self.hitdir[1] < 0.000001:
+                self.hitdir[1] = 0
+            if self.hitdir[2] < 0.000001:
+                self.hitdir[2] = 0
         return (dx, dy, dz)

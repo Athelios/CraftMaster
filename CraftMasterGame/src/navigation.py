@@ -30,7 +30,7 @@ class Graph:
     def nearest(self):
         nearest = list(self.discoverable.values())[0]
         dist = self.end.distance(nearest)
-        print("Disc", self.discoverable.keys())
+        #print("Disc", self.discoverable.keys())
         for node in self.discoverable.values():
             d = self.end.distance(node)
             if d < dist:
@@ -108,10 +108,11 @@ class Navigation:
             pos1 = self.path[math.floor(self.shift)].position
             pos2 = self.path[math.ceil(self.shift)].position
             pos = self.interpolate(pos1, pos2, self.shift % 1)
-            if self.shift + 0.1 >= len(self.path) - 1:
+            if self.shift + 0.05 >= len(self.path) - 1:
                 self.npc.goal = None
             else:
-                self.shift += 0.1
+                self.shift += 0.05
+            pos = (pos[0], pos[1] - 0.25, pos[2])
             return pos
         else:
             return self.npc.position

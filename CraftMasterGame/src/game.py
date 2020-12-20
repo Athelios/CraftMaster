@@ -19,7 +19,7 @@ class Game(pyglet.window.Window):
         #Initialize the player at the position (0,0,0)
         self.player = Player((0,0,0))
         # Instance of the world that handles the world.
-        self.world = World(ALLBLOCKS)
+        self.world = World(ALLBLOCKS, self.player)
         #TICKS_PER_SEC
         self.refreshRate = refreshRate
         # This call schedules the `update()` method to be called

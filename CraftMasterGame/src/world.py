@@ -7,6 +7,9 @@ from shape import Shape3D
 from loadSource import *
 
 from enemy import Enemy
+from animal import Animal
+
+import numpy as np
 
 if sys.version_info[0] >= 3:
     xrange = range
@@ -154,7 +157,15 @@ class World(object):
                             continue
                         self.add_block((x, y, z), t.name, immediate=False)
                 s -= d  # decrement side length so hills taper off
-        self.npcs.append(Enemy(self, [0, -1, 0], 10))
+        #self.npcs.append(Animal(self, [2, -1, 0], 10))
+
+    def getZ(self, x, z):
+        for y in range(-120, 120):
+            b1 = self._normalize((x, y, z))
+            b2 = self._normalize((x, y + 1, z))
+            if b1 in self.world and b2 not in self.world:
+                return y + 1
+        return -1
 
     def walkable(self, position):
         n1, n2, n3, n4, n5, n6, n7, n8 = 8*[[]]
@@ -218,7 +229,7 @@ class World(object):
 
     def collide(self, position, creature):
         """ Checks to see if the player at the given `position` and `height`
-        is colliding with any blocks in the world.
+        is colliding with any blocks or creatures in the world.
 
         Parameters
         ----------
@@ -260,7 +271,34 @@ class World(object):
                         # falling / rising.
                         creature.dy = 0
                     break
+        for npc in self.npcs:
+            if npc.distanceTo(self.player) < 1.3 and creature == self.player:
+                p = self.player.position
+                o = npc.position
+                v = (o[0] - p[0], o[1] - p[1], o[2] - p[2])
+                length = (v[0]**2 + v[1]**2 + v[2]**2)**0.5 / 0.15
+                v = (v[0] / length, v[1] / length, v[2] / length)
+                return p[0] - v[0], p[1], p[2] - v[2]
         return tuple(p)
+
+    def lineseg_dist(self, p, a, b):
+        p = np.asarray(p, dtype=np.float32)
+        a = np.asarray(a, dtype=np.float32)
+        b = np.asarray(b, dtype=np.float32)
+        # normalized tangent vector
+        d = np.divide(b - a, np.linalg.norm(b - a))
+
+        # signed parallel distance components
+        s = np.dot(a - p, d)
+        t = np.dot(p - b, d)
+
+        # clamped parallel distance
+        h = np.maximum.reduce([s, t, 0])
+
+        # perpendicular distance component
+        c = np.cross(p - a, d)
+
+        return np.hypot(h, np.linalg.norm(c))
 
     def hit_test(self, position, vector, max_distance=8):
         """ Line of sight search from current position. If a block is
@@ -288,6 +326,16 @@ class World(object):
             previous = key
             x, y, z = x + dx / m, y + dy / m, z + dz / m
         return None, None
+
+    def hit_test_creature(self, vector):
+        for npc in self.npcs:
+            position = [npc.position[0], npc.position[1] + 1, npc.position[2]]
+            start = [self.player.position[0], self.player.position[1], self.player.position[2]]
+            end = (start[0] + vector[0], start[1] + vector[1], start[2] + vector[2])
+            dist = self.lineseg_dist(position, start, end)
+            if dist < 0.7:
+                return npc
+        return None
 
     def add_block(self, position, block, immediate=True):
         """ Add a block with the given `texture` and `position` to the world.

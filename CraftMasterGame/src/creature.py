@@ -37,6 +37,7 @@ class Creature(object):
         #the health of the creatures
         self.health = health
         self.hitdir = [0, 0, 0]
+        self.stunned = 0
 
     def rotate(self,x,y):
     ##  @brie frotate the player
@@ -70,6 +71,7 @@ class Creature(object):
             raise ValueError("The direction has to be forward, backward, left or right.")
 
     def hit(self,direction):
+        self.stunned = 30
         self.hitdir = direction
 
     def jump(self,gravity):
@@ -104,6 +106,8 @@ class Creature(object):
         x, y, z = self.position
         x, y, z = world.collide((x + dx, y + dy, z + dz), self)
         self.position = (x, y, z)
+        if self.stunned:
+            self.stunned -= 1
 
     def get_motion_vector(self):
     ##  @brief returns the current motion vector indicating the velocity of the creature.
@@ -145,3 +149,8 @@ class Creature(object):
             if self.hitdir[2] < 0.000001:
                 self.hitdir[2] = 0
         return (dx, dy, dz)
+
+    def distanceToPos(self, pos):
+        x1, y1, z1 = self.position
+        x2, y2, z2 = pos
+        return (((x2 - x1) ** 2) + ((y2 - y1) ** 2) + ((z2 - z1) ** 2)) ** (1 / 2)

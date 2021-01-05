@@ -34,7 +34,11 @@ class  GameScene(Screen):
         """
         vector = self.game.player.get_sight_vector()
         curPos, prePos = self.game.world.hit_test(self.game.player.position, vector)
-        if (button == mouse.RIGHT) or \
+        creature = self.game.world.hit_test_creature(vector)
+        if creature and (button == mouse.LEFT):
+            vector = [10 * (creature.position[0] - self.game.player.position[0]), 10 * (creature.position[2] - self.game.player.position[2]), 10]
+            creature.hit(vector)
+        elif (button == mouse.RIGHT) or \
             ((button == mouse.LEFT) and (modifiers & key.MOD_CTRL)):
             # ON OSX, control + left click = right click.
             if prePos:

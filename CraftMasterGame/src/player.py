@@ -4,6 +4,7 @@ class Player(Creature):
     def __init__(self,position):
         super(Player,self).__init__(position = position, height = 2, health = 100)
         self.energy = 100
+        self.lastPosition = position
 
     def get_sight_vector(self):
         """ Returns the current line of sight vector indicating the direction
@@ -24,3 +25,7 @@ class Player(Creature):
     def switchFlyState(self):
         """switch the flying state of player"""
         self.flying = not self.flying
+
+    def update(self, dt, world):
+        super(Player, self).update(dt, world)
+        self.lastPosition = list(self.position)
